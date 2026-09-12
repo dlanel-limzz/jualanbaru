@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toko Online</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+      }
+    }
+  }
+</script>
+<style>
+  html { -webkit-tap-highlight-color: transparent; }
+  @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .animate-pop { animation: pop .2s cubic-bezier(.2,.8,.3,1); }
+  .animate-fade { animation: fade .2s ease-out; }
+  [contenteditable]:focus { outline: none; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; border: 3px solid transparent; background-clip: content-box; }
+</style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ================= HEADER ================= -->
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-3">
+
+      <div class="flex items-center gap-3 min-w-0">
+        <div id="logo" class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 grid place-items-center text-white font-extrabold shadow-sm shadow-emerald-600/25 shrink-0 select-none">T</div>
+        <div class="min-w-0">
+          <h1 id="storeName" contenteditable="true" spellcheck="false"
+              title="Klik untuk mengubah nama toko"
+              class="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight truncate rounded-lg px-1 -mx-1 cursor-text hover:bg-slate-100 focus:bg-emerald-50 transition">Toko Saya</h1>
+          <p class="text-[11px] sm:text-xs text-slate-500 flex items-center gap-1 leading-tight">
+            <span class="shrink-0">WA:</span>
+            <span id="waNumber" contenteditable="true" spellcheck="false" inputmode="numeric"
+                  title="Klik untuk mengubah nomor WhatsApp"
+                  class="rounded px-1 -mx-0.5 cursor-text hover:bg-slate-100 focus:bg-emerald-50 transition tabular-nums">6281234567890</span>
+          </p>
+        </div>
+      </div>
+
+      <button id="btnAdd"
+        class="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[.97] text-white font-semibold text-xs sm:text-sm px-3 sm:px-4 py-2.5 shadow-sm shadow-emerald-600/25 transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="w-4 h-4"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="hidden xs:inline sm:inline">Tambah Produk</span>
+        <span class="xs:hidden sm:hidden">Produk</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-9">
+    <div class="flex items-end justify-between gap-3 mb-4 sm:mb-6">
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900">Katalog Produk</h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Pilih produk lalu pesan langsung via WhatsApp.</p>
+      </div>
+      <span id="count" class="text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-full px-3 py-1 shrink-0"></span>
+    </div>
+
+    <div id="grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5"></div>
+  </main>
+
+  <footer class="border-t border-slate-200 py-6 text-center">
+    <p class="text-xs text-slate-400">Klik nama toko / nomor WA di atas untuk mengubahnya · Data tersimpan otomatis di perangkat ini</p>
+  </footer>
+
+  <!-- ================= MODAL PRODUK ================= -->
+  <div id="modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-fade" data-close></div>
+    <div class="relative h-full w-full flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
+      <div class="pointer-events-auto w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92dvh] overflow-y-auto animate-pop">
+
+        <form id="productForm" class="p-5 sm:p-6 space-y-5" novalidate>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 id="modalTitle" class="text-lg font-bold text-slate-900">Tambah Produk</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Lengkapi data produk di bawah ini.</p>
+            </div>
+            <button type="button" data-close
+              class="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <!-- Foto -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Foto Produk</label>
+            <div id="dropZone"
+              class="relative w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-emerald-400 hover:bg-emerald-50/40 cursor-pointer overflow-hidden grid place-items-center transition">
+              <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover" alt="">
+              <div id="dropHint" class="text-center px-4 pointer-events-none">
+                <div class="mx-auto w-12 h-12 rounded-2xl bg-white border border-slate-200 grid place-items-center text-slate-400 mb-3 shadow-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/>
+                  </svg>
+                </div>
+                <p class="text-sm font-semibold text-slate-600">Klik atau tarik foto ke sini</p>
+                <p class="text-xs text-slate-400 mt-1">PNG / JPG — otomatis dikompres</p>
+              </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
+          </div>
+
+          <!-- Nama -->
+          <div>
+            <label for="inputName" class="block text-sm font-semibold text-slate-700 mb-2">Nama Produk</label>
+            <input id="inputName" type="text" maxlength="70" placeholder="Contoh: Kaos Polos Premium"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition placeholder:text-slate-400">
+          </div>
+
+          <!-- Harga -->
+          <div>
+            <label for="inputPrice" class="block text-sm font-semibold text-slate-700 mb-2">Harga</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400 pointer-events-none">Rp</span>
+              <input id="inputPrice" type="text" inputmode="numeric" placeholder="0"
+                class="w-full rounded-xl border border-slate-300 pl-11 pr-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition placeholder:text-slate-400 tabular-nums">
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-1">
+            <button type="button" data-close
+              class="flex-1 rounded-xl border border-slate-300 text-slate-700 font-semibold py-3 text-sm hover:bg-slate-50 active:scale-[.98] transition">Batal</button>
+            <button type="submit"
+              class="flex-[2] rounded-xl bg-emerald-600 text-white font-semibold py-3 text-sm hover:bg-emerald-700 active:scale-[.98] shadow-sm shadow-emerald-600/25 transition">Simpan Produk</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL KONFIRMASI HAPUS ================= -->
+  <div id="confirmModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-fade" data-cancel></div>
+    <div class="relative h-full w-full flex items-center justify-center p-4 pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center animate-pop">
+        <div class="mx-auto w-12 h-12 rounded-full bg-rose-100 grid place-items-center text-rose-600 mb-4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          </svg>
+        </div>
+        <h3 class="font-bold text-slate-900">Hapus produk ini?</h3>
+        <p id="confirmMsg" class="text-sm text-slate-500 mt-1.5 leading-relaxed"></p>
+        <div class="flex gap-3 mt-6">
+          <button id="btnCancel" class="flex-1 rounded-xl border border-slate-300 text-slate-700 font-semibold py-2.5 text-sm hover:bg-slate-50 transition">Batal</button>
+          <button id="btnYes" class="flex-1 rounded-xl bg-rose-600 text-white font-semibold py-2.5 text-sm hover:bg-rose-700 transition">Hapus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOAST ================= -->
+  <div id="toastWrap" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[70] hidden">
+    <div id="toastBox" class="rounded-full bg-slate-900 text-white text-sm font-medium px-5 py-3 shadow-xl animate-pop"></div>
+  </div>
+
+<script>
+/* =========================================================
+   TOKO ONLINE — VANILLA JS
+   ========================================================= */
+
+/* ---------- Helper ---------- */
+const $  = (s) => document.querySelector(s);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const rp  = (n) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+const onlyDigits = (s) => String(s).replace(/\D/g, '');
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+/* Placeholder SVG (untuk produk contoh, tanpa file eksternal) */
+function ph(label, c1, c2) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </linearGradient></defs>
+    <rect width="600" height="600" fill="url(#g)"/>
+    <text x="300" y="312" font-family="Helvetica,Arial,sans-serif" font-size="64"
+      font-weight="bold" fill="#ffffff" fill-opacity="0.92" text-anchor="middle">${label}</text>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+/* ---------- Icons ---------- */
+const ICON = {
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M18.4 2.6a2 2 0 0 1 2.8 2.8L12 14.6l-3.8 1 1-3.8 9.2-9.2z"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>`,
+  wa: `<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 shrink-0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>`
+};
+
+/* ---------- State & Storage ---------- */
+const LS_KEY = 'toko-online-v1';
+const DEFAULT_STATE = { storeName: 'Toko Saya', waNumber: '6281234567890', products: [] };
+
+function seed() {
+  return {
+    storeName: 'Toko Saya',
+    waNumber: '6281234567890',
+    products: [
+      { id: uid(), name: 'Kaos Polos Premium',   price: 75000,  image: ph('Kaos',   '#34d399', '#059669') },
+      { id: uid(), name: 'Tas Kanvas Casual',    price: 145000, image: ph('Tas',    '#60a5fa', '#2563eb') },
+      { id: uid(), name: 'Sneakers Putih',       price: 320000, image: ph('Sepatu', '#fbbf24', '#f59e0b') },
+      { id: uid(), name: 'Topi Baseball Katun',  price: 55000,  image: ph('Topi',   '#f472b6', '#db2777') }
+    ]
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return seed();
+    const parsed = JSON.parse(raw);
+    return {
+      storeName: parsed.storeName || DEFAULT_STATE.storeName,
+      waNumber: parsed.waNumber || DEFAULT_STATE.waNumber,
+      products: Array.isArray(parsed.products) ? parsed.products : []
+    };
+  } catch (e) {
+    return seed();
+  }
+}
+
+let state = load();
+
+function save() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  } catch (e) {
+    toast('Penyimpanan perangkat penuh — hapus beberapa produk.', true);
+  }
+}
+
+/* ---------- DOM refs ---------- */
+const gridEl        = $('#grid');
+const countEl       = $('#count');
+const storeNameEl   = $('#storeName');
+const waNumberEl    = $('#waNumber');
+const logoEl        = $('#logo');
+
+const modalEl       = $('#modal');
+const modalTitleEl  = $('#modalTitle');
+const formEl        = $('#productForm');
+const dropZone      = $('#dropZone');
+const fileInput     = $('#fileInput');
+const previewEl     = $('#preview');
+const dropHintEl    = $('#dropHint');
+const inputName     = $('#inputName');
+const inputPrice    = $('#inputPrice');
+
+const confirmModal  = $('#confirmModal');
+const confirmMsgEl  = $('#confirmMsg');
+
+const toastWrap     = $('#toastWrap');
+const toastBox      = $('#toastBox');
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg, isError = false) {
+  toastBox.textContent = msg;
+  toastBox.className =
+    'rounded-full text-sm font-medium px-5 py-3 shadow-xl animate-pop ' +
+    (isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white');
+  toastWrap.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastWrap.classList.add('hidden'), 2300);
+}
+
+/* ---------- Header (editable) ---------- */
+function renderHeader() {
+  storeNameEl.textContent = state.storeName;
+  waNumberEl.textContent = state.waNumber;
+  logoEl.textContent = (state.storeName.trim().charAt(0) || 'T').toUpperCase();
+}
+
+storeNameEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); storeNameEl.blur(); }
+  if (e.key === 'Escape') { storeNameEl.textContent = state.storeName; storeNameEl.blur(); }
+});
+storeNameEl.addEventListener('blur', () => {
+  const v = storeNameEl.textContent.replace(/\s+/g, ' ').trim();
+  state.storeName = v || 'Toko Saya';
+  save();
+  renderHeader();
+});
+
+waNumberEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); waNumberEl.blur(); }
+  if (e.key === 'Escape') { waNumberEl.textContent = state.waNumber; waNumberEl.blur(); }
+});
+waNumberEl.addEventListener('blur', () => {
+  let d = onlyDigits(waNumberEl.textContent);
+  if (d.startsWith('0')) d = '62' + d.slice(1);
+  if (d.startsWith('8')) d = '62' + d;
+  state.waNumber = d || DEFAULT_STATE.waNumber;
+  save();
+  renderHeader();
+});
+
+/* ---------- WhatsApp link ---------- */
+function waLink(product) {
+  const num = onlyDigits(state.waNumber);
+  const text = `Halo, saya mau pesan ${product.name} harga ${rp(product.price)}`;
+  return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+}
+
+/* ---------- Render produk ---------- */
+function cardHTML(p) {
+  return `
+  <article class="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition duration-300 flex flex-col">
+    <div class="relative aspect-square bg-slate-100 overflow-hidden">
+      <img src="${p.image}" alt="${esc(p.name)}" loading="lazy"
+           class="w-full h-full object-cover group-hover:scale-[1.06] transition duration-500">
+      <div class="absolute top-2 right-2 flex gap-1.5">
+        <button data-act="edit" data-id="${p.id}" title="Edit produk"
+          class="w-8 h-8 grid place-items-center rounded-xl bg-white/90 backdrop-blur text-slate-600 hover:text-emerald-600 hover:bg-white shadow-sm ring-1 ring-black/5 active:scale-95 transition">
+          ${ICON.edit}
+        </button>
+        <button data-act="delete" data-id="${p.id}" title="Hapus produk"
+          class="w-8 h-8 grid place-items-center rounded-xl bg-white/90 backdrop-blur text-slate-600 hover:text-rose-600 hover:bg-white shadow-sm ring-1 ring-black/5 active:scale-95 transition">
+          ${ICON.trash}
+        </button>
+      </div>
+    </div>
+
+    <div class="p-3 sm:p-4 flex flex-col flex-1">
+      <h3 class="font-semibold text-slate-800 text-[13px] sm:text-base leading-snug line-clamp-2">${esc(p.name)}</h3>
+      <p class="mt-1 text-emerald-600 font-extrabold text-sm sm:text-base tabular-nums">${rp(p.price)}</p>
+
+      <a href="${waLink(p)}" target="_blank" rel="noopener noreferrer"
+         class="mt-3 sm:mt-4 inline-flex items-center justify-center gap-1.5 sm:gap-2 w-full rounded-xl bg-[#25D366] hover:bg-[#1eb959] active:scale-[.97] text-white font-semibold text-[11px] sm:text-sm py-2.5 px-2 shadow-sm shadow-emerald-500/25 transition">
+        ${ICON.wa}
+        <span class="truncate">Hubungi via WhatsApp</span>
+      </a>
+    </div>
+  </article>`;
+}
+
+function render() {
+  renderHeader();
+  countEl.textContent = state.products.length ? `${state.products.length} produk` : '';
+
+  if (!state.products.length) {
+    gridEl.className = 'block';
+    gridEl.innerHTML = `
+      <div class="rounded-3xl border-2 border-dashed border-slate-300 bg-white/60 px-6 py-16 text-center">
+        <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-100 grid place-items-center text-slate-400 mb-4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </div>
+        <h3 class="font-bold text-slate-800">Belum ada produk</h3>
+        <p class="text-sm text-slate-500 mt-1">Tambahkan produk pertama untuk mulai berjualan.</p>
+        <button data-act="add"
+          class="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-s
